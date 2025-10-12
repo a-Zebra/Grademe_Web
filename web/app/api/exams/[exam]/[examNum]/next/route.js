@@ -55,15 +55,18 @@ export async function GET(req, { params }) {
     return NextResponse.json({ nextExercise: null });
   }
 
-  // Find next exercise with higher level
+  // Find next level exercises
   const currentLevelNum = allExercises[currentIndex].levelNum;
-  const nextExercises = allExercises.filter(
-    (ex) => ex.levelNum > currentLevelNum
+  const nextLevelNum = currentLevelNum + 1;
+  const nextLevelExercises = allExercises.filter(
+    (ex) => ex.levelNum === nextLevelNum
   );
 
-  if (nextExercises.length > 0) {
-    // Return first exercise of next level
-    return NextResponse.json({ nextExercise: nextExercises[0] });
+  if (nextLevelExercises.length > 0) {
+    // Pick a random exercise from next level
+    const randomExercise =
+      nextLevelExercises[Math.floor(Math.random() * nextLevelExercises.length)];
+    return NextResponse.json({ nextExercise: randomExercise });
   }
 
   // No more exercises

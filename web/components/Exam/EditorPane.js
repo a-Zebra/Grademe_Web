@@ -18,6 +18,9 @@ export function EditorPane({
   const [output, setOutput] = useState("");
   const [passed, setPassed] = useState(false);
   const [split, setSplit] = useState(0.7);
+  const [showTimer, setShowTimer] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [startTime, setStartTime] = useState(null);
   const containerRef = useRef(null);
   const isDraggingRef = useRef(false);
 
@@ -110,11 +113,111 @@ export function EditorPane({
     };
   }, [onDragMove, onDragEnd]);
 
+  // Get exam duration based on exam type and number
+  const getExamDuration = useCallback(() => {
+    if (examId === "PISCINE_PART") {
+      if (examNum === "exam_04") {
+        return 480; // 8 hours
+      }
+      return 240; // 4 hours
+    }
+    return 180; // 3 hours (STUD_PART default)
+  }, [examId, examNum]);
+
+  // Timer logic
+  useEffect(() => {
+    const storedStartTime = sessionStorage.getItem(
+      `exam_${examId}_${examNum}_start`
+    );
+    if (storedStartTime) {
+      const start = parseInt(storedStartTime, 10);
+      setStartTime(start);
+    }
+  }, [examId, examNum]);
+
+  useEffect(() => {
+    if (!startTime) return;
+
+    const duration = getExamDuration();
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const remaining = duration * 60 - elapsed;
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        setTimeLeft(0);
+        alert("⏰ Time is up! Exam session has ended.");
+        router.push("/");
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [startTime, router, getExamDuration]);
+
+  const formatTime = useCallback(() => {
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    const seconds = timeLeft % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+      2,
+      "0"
+    )}:${String(seconds).padStart(2, "0")}`;
+  }, [timeLeft]);
+
+  const isWarning = timeLeft <= 600;
+  const isCritical = timeLeft <= 300;
+
   return (
     <div className="h-full flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-neutral-400">Subject: {subjectId}</p>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {startTime && (
+            <div className="flex items-center gap-2">
+              {showTimer && (
+                <div
+                  className={`px-3 py-1.5 rounded font-mono text-sm transition-colors ${
+                    isCritical
+                      ? "bg-red-900/90 text-red-100"
+                      : isWarning
+                      ? "bg-orange-900/90 text-orange-100"
+                      : "bg-neutral-800 text-neutral-100"
+                  }`}
+                >
+                  {formatTime()}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowTimer(!showTimer)}
+                className={`p-2 rounded transition-colors ${
+                  isCritical
+                    ? "bg-red-900/90 hover:bg-red-800 text-red-100"
+                    : isWarning
+                    ? "bg-orange-900/90 hover:bg-orange-800 text-orange-100"
+                    : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+                }`}
+                title="Toggle timer"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
           <button
             type="button"
             onClick={onSubmit}

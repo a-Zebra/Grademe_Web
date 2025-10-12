@@ -1,29 +1,33 @@
+"use client";
+
 import { EditorPane } from "@/components/Exam/EditorPane";
 import { HorizontalSplit } from "@/components/ui/HorizontalSplit";
-import { getServerBaseUrl } from "@/lib/base-url";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export const dynamic = "force-dynamic";
 
-async function getExercise(examType, examNum, level, exercise) {
-  const base = getServerBaseUrl();
-  const res = await fetch(
-    `${base}/api/exams/${examType}/${examNum}/${level}/${exercise}`,
-    {
-      cache: "no-store",
-    }
-  );
-  if (!res.ok) return null;
-  return res.json();
-}
+export default function ExercisePage({ params }) {
+  const [exercise, setExercise] = useState(null);
 
-export default async function ExercisePage({ params }) {
-  const exercise = await getExercise(
-    params.exam,
-    params.examNum,
-    params.level,
-    params.exercise
-  );
+  useEffect(() => {
+    // Load exercise content
+    async function loadExercise() {
+      try {
+        const res = await fetch(
+          `/api/exams/${params.exam}/${params.examNum}/${params.level}/${params.exercise}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setExercise(data);
+        }
+      } catch (err) {
+        console.error("Failed to load exercise:", err);
+      }
+    }
+
+    loadExercise();
+  }, [params.exam, params.examNum, params.level, params.exercise]);
 
   return (
     <main className="h-[100svh]">
