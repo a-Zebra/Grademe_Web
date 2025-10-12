@@ -38,7 +38,7 @@ export default function ExamNumberPage({ params }) {
   }
 
   return (
-    <main className="p-6 flex items-center justify-center min-h-screen">
+    <main className="p-6 max-w-5xl mx-auto flex items-center justify-center min-h-screen">
       <div className="max-w-md w-full text-center">
         <Link
           href={`/exam/${params.exam}`}

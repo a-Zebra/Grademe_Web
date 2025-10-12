@@ -5,7 +5,7 @@ export function ButtonLink({ href, children }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center justify-center rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-100 px-4 py-2 transition-colors border border-neutral-700"
+      className="inline-flex items-center justify-center rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-100 px-6 py-4 transition-colors border border-neutral-700"
     >
       {children}
     </Link>

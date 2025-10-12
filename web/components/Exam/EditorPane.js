@@ -44,13 +44,33 @@ export function EditorPane({
       if (!res.ok) throw new Error(data?.error || "Grading failed");
       setOutput(data.output || "No output");
       setPassed(data.passed || false);
+
+      // Apply penalty if failed and penalties are enabled
+      if (!data.passed) {
+        const penaltiesEnabled =
+          localStorage.getItem("penalties_enabled") !== "false";
+        if (penaltiesEnabled && startTime) {
+          // Add 5 minutes penalty
+          const penaltyKey = `exam_${examId}_${examNum}_penalty`;
+          const currentPenalty = parseInt(
+            sessionStorage.getItem(penaltyKey) || "0",
+            10
+          );
+          const newPenalty = currentPenalty + 300; // 5 minutes in seconds
+          sessionStorage.setItem(penaltyKey, newPenalty.toString());
+
+          setOutput(
+            (prev) => prev + "\n\n⚠️ Penalty: +5 minutes added to exam time."
+          );
+        }
+      }
     } catch (err) {
       setOutput(String(err.message || err));
       setPassed(false);
     } finally {
       setIsSubmitting(false);
     }
-  }, [canSubmit, code, examId, subjectId]);
+  }, [canSubmit, code, examId, subjectId, startTime, examNum]);
 
   const handleNext = useCallback(async () => {
     // Fetch next exercise
@@ -141,7 +161,12 @@ export function EditorPane({
     const duration = getExamDuration();
     const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const remaining = duration * 60 - elapsed;
+
+      // Get accumulated penalties
+      const penaltyKey = `exam_${examId}_${examNum}_penalty`;
+      const penalty = parseInt(sessionStorage.getItem(penaltyKey) || "0", 10);
+
+      const remaining = duration * 60 - elapsed - penalty;
 
       if (remaining <= 0) {
         clearInterval(interval);
@@ -154,7 +179,7 @@ export function EditorPane({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [startTime, router, getExamDuration]);
+  }, [startTime, router, getExamDuration, examId, examNum]);
 
   const formatTime = useCallback(() => {
     const hours = Math.floor(timeLeft / 3600);
