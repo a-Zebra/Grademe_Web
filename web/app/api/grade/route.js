@@ -7,8 +7,6 @@ import { findSubjectsRoot } from "@/lib/grademe-path";
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
-  // Note: Vercel does not allow long-running processes or arbitrary binaries.
-  // Locally, we can shell out to grademe's grading scripts; on Vercel we return 501.
   if (process.env.VERCEL) {
     return NextResponse.json(
       {
