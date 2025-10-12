@@ -11,8 +11,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "Apache-2.0",
+  "description": "Web interface for grademe - 42 exam grading system",
   "type": "module",
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

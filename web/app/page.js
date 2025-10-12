@@ -43,6 +43,26 @@ export default function Page() {
 
       <div className="mt-8 pt-6 border-t border-neutral-800">
         <PenaltyToggle />
+        <div className="mt-4 text-xs text-neutral-500">
+          Powered by{" "}
+          <a
+            href="https://github.com/Seraph919/Grademe-edu"
+            className="underline hover:text-neutral-400"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            grademe
+          </a>{" "}
+          - created by{" "}
+          <a
+            href="https://github.com/JCluzet"
+            className="underline hover:text-neutral-400"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @JCluzet
+          </a>
+        </div>
       </div>
     </main>
   );
