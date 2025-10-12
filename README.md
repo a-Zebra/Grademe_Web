@@ -16,7 +16,7 @@ The web interface code is also licensed under the Apache License, Version 2.0.
 
 # Grademe Web
 
-Built on the shoulders of https://github.com/Seraph919 and https://github.com/JCluzet, Grademe Web provides a friendly frontend for 42 exam exercises.
+Built on the shoulders of **@Seraph919** and **@JCluzet**, Grademe Web provides a friendly frontend for 42 exam exercises.
 
 ## Features
 
