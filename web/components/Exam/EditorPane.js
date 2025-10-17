@@ -389,9 +389,9 @@ export function EditorPane({
             onClick={onSubmit}
             disabled={!canSubmit}
             className="px-3 py-1.5 bg-emerald-600 rounded hover:bg-emerald-500 disabled:opacity-50 text-sm"
-            title="Submit for official grading"
+            title="Grademe: run official grading"
           >
-            {isSubmitting ? "Grading…" : "Submit"}
+            {isSubmitting ? "Grading…" : "Grademe"}
           </button>
           {passed && (
             <button
