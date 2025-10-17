@@ -22,6 +22,7 @@ export async function POST(req, { params }) {
   }
 
   const { exam, examNum, level, exercise } = params;
+  const programArgs = body.args || "";
 
   // Find grademe root
   const subjectsRoot = await findSubjectsRoot();
@@ -83,7 +84,7 @@ export async function POST(req, { params }) {
   }
 
   // Compilation succeeded, try to run the executable
-  const runResult = await runExecutable(executablePath, runPath);
+  const runResult = await runExecutable(executablePath, runPath, programArgs);
 
   // Clean up
   await fs.rm(runPath, { recursive: true, force: true }).catch(() => {});
@@ -144,9 +145,13 @@ function compileCode(compiler, sourceFiles, outputName, cwd) {
   });
 }
 
-function runExecutable(executablePath, cwd) {
+function runExecutable(executablePath, cwd, argsString) {
   return new Promise((resolve) => {
-    const child = spawn(executablePath, [], { cwd, timeout: 5000 });
+    // Parse arguments from string - simple shell-like parsing
+    // Handles: "hello world" 123 'test' -> ["hello world", "123", "test"]
+    const args = parseArgs(argsString);
+
+    const child = spawn(executablePath, args, { cwd, timeout: 5000 });
     let out = "";
     let err = "";
 
@@ -171,4 +176,41 @@ function runExecutable(executablePath, cwd) {
       });
     });
   });
+}
+
+function parseArgs(argsString) {
+  if (!argsString || !argsString.trim()) {
+    return [];
+  }
+
+  const args = [];
+  let current = "";
+  let inQuote = null;
+
+  for (let i = 0; i < argsString.length; i++) {
+    const char = argsString[i];
+
+    if (inQuote) {
+      if (char === inQuote) {
+        inQuote = null;
+      } else {
+        current += char;
+      }
+    } else if (char === '"' || char === "'") {
+      inQuote = char;
+    } else if (char === " " || char === "\t") {
+      if (current) {
+        args.push(current);
+        current = "";
+      }
+    } else {
+      current += char;
+    }
+  }
+
+  if (current) {
+    args.push(current);
+  }
+
+  return args;
 }

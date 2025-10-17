@@ -19,6 +19,7 @@ export function EditorPane({
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState("");
   const [passed, setPassed] = useState(false);
+  const [runArgs, setRunArgs] = useState("");
   const [split, setSplit] = useState(0.7);
   const [showTimer, setShowTimer] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -51,7 +52,7 @@ export function EditorPane({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code }),
+          body: JSON.stringify({ code, args: runArgs }),
         }
       );
       const data = await res.json();
@@ -62,7 +63,7 @@ export function EditorPane({
     } finally {
       setIsRunning(false);
     }
-  }, [canRun, code, examId, examNum, currentLevel, currentExercise]);
+  }, [canRun, code, runArgs, examId, examNum, currentLevel, currentExercise]);
 
   const onSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -419,9 +420,27 @@ export function EditorPane({
         />
         <div
           style={{ height: `${(1 - split) * 100}%` }}
-          className="min-h-[80px] overflow-auto bg-[#0c0c0c] p-3 text-xs text-[#cccccc] whitespace-pre-wrap font-mono"
+          className="min-h-[80px] flex flex-col bg-[#0c0c0c]"
         >
-          {output || "Grader output will appear here."}
+          <div className="flex-1 overflow-auto p-3 text-xs text-[#cccccc] whitespace-pre-wrap font-mono">
+            {output || "Grader output will appear here."}
+          </div>
+          <div className="border-t border-[#2d2d30] p-2 flex items-center gap-2">
+            <span className="text-[#cccccc] text-xs font-mono">$ ./a.out</span>
+            <input
+              type="text"
+              value={runArgs}
+              onChange={(e) => setRunArgs(e.target.value)}
+              placeholder='"arguments"'
+              className="flex-1 bg-[#1e1e1e] text-[#cccccc] text-xs font-mono px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 border border-[#2d2d30] rounded"
+              title="Command-line arguments for Run button"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canRun) {
+                  onRun();
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
       <SolutionModal
