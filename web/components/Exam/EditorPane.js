@@ -16,6 +16,7 @@ export function EditorPane({
   const router = useRouter();
   const [code, setCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState("");
   const [passed, setPassed] = useState(false);
   const [split, setSplit] = useState(0.7);
@@ -30,14 +31,43 @@ export function EditorPane({
   const isDraggingRef = useRef(false);
 
   const canSubmit = useMemo(
-    () => !isSubmitting && code.trim().length > 0,
-    [isSubmitting, code]
+    () => !isSubmitting && !isRunning && code.trim().length > 0,
+    [isSubmitting, isRunning, code]
   );
+
+  const canRun = useMemo(
+    () => !isRunning && !isSubmitting && code.trim().length > 0,
+    [isRunning, isSubmitting, code]
+  );
+
+  const onRun = useCallback(async () => {
+    if (!canRun) return;
+    setIsRunning(true);
+    setOutput("Compiling and running...");
+    setPassed(false);
+    try {
+      const res = await fetch(
+        `/api/exams/${examId}/${examNum}/${currentLevel}/${currentExercise}/run`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Run failed");
+      setOutput(data.output || "No output");
+    } catch (err) {
+      setOutput(`❌ Error: ${err.message || err}`);
+    } finally {
+      setIsRunning(false);
+    }
+  }, [canRun, code, examId, examNum, currentLevel, currentExercise]);
 
   const onSubmit = useCallback(async () => {
     if (!canSubmit) return;
     setIsSubmitting(true);
-    setOutput("Running grader...");
+    setOutput("🔍 Running full test suite...");
     setPassed(false);
     try {
       const res = await fetch("/api/grade", {
@@ -347,9 +377,19 @@ export function EditorPane({
           )}
           <button
             type="button"
+            onClick={onRun}
+            disabled={!canRun}
+            className="px-3 py-1.5 bg-blue-600 rounded hover:bg-blue-500 disabled:opacity-50 text-sm"
+            title="Test your code without grading (no penalties)"
+          >
+            {isRunning ? "Running…" : "▶ Run"}
+          </button>
+          <button
+            type="button"
             onClick={onSubmit}
             disabled={!canSubmit}
             className="px-3 py-1.5 bg-emerald-600 rounded hover:bg-emerald-500 disabled:opacity-50 text-sm"
+            title="Submit for official grading"
           >
             {isSubmitting ? "Grading…" : "Submit"}
           </button>
