@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { PenaltyToggle } from "@/components/ui/PenaltyToggle";
+import { SolutionToggle } from "@/components/ui/SolutionToggle";
 
 export default function Page() {
   const [exams, setExams] = useState([]);
@@ -75,7 +76,10 @@ export default function Page() {
 
         {/* Settings + attribution, separated by a line */}
         <div className="mt-12 pt-6 border-t border-neutral-800">
-          <PenaltyToggle />
+          <div className="space-y-3">
+            <PenaltyToggle />
+            <SolutionToggle />
+          </div>
           <div className="mt-4 text-xs text-neutral-500">
             Powered by{" "}
             <a

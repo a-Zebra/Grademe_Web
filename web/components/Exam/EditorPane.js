@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
 import { CodeEditor } from "../Editor/CodeEditor";
+import { SolutionModal } from "../ui/SolutionModal";
 
 export function EditorPane({
   examId,
@@ -21,6 +22,10 @@ export function EditorPane({
   const [showTimer, setShowTimer] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [startTime, setStartTime] = useState(null);
+  const [showSolution, setShowSolution] = useState(false);
+  const [solutionData, setSolutionData] = useState(null);
+  const [loadingSolution, setLoadingSolution] = useState(false);
+  const [solutionEnabled, setSolutionEnabled] = useState(false);
   const containerRef = useRef(null);
   const isDraggingRef = useRef(false);
 
@@ -194,10 +199,83 @@ export function EditorPane({
   const isWarning = timeLeft <= 600;
   const isCritical = timeLeft <= 300;
 
+  // Check if solution is enabled
+  useEffect(() => {
+    const stored = localStorage.getItem("solution_enabled");
+    setSolutionEnabled(stored === "true");
+  }, []);
+
+  // Fetch solution
+  const handleShowSolution = useCallback(async () => {
+    if (loadingSolution || solutionData) {
+      setShowSolution(true);
+      return;
+    }
+
+    setLoadingSolution(true);
+    try {
+      const res = await fetch(
+        `/api/exams/${examId}/${examNum}/${currentLevel}/${currentExercise}/solution`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setSolutionData(data);
+        setShowSolution(true);
+      } else {
+        alert("Solution not found");
+      }
+    } catch (err) {
+      console.error("Failed to load solution:", err);
+      alert("Failed to load solution");
+    } finally {
+      setLoadingSolution(false);
+    }
+  }, [
+    loadingSolution,
+    solutionData,
+    examId,
+    examNum,
+    currentLevel,
+    currentExercise,
+  ]);
+
+  const handleExitExam = useCallback(() => {
+    if (
+      confirm(
+        "Are you sure you want to exit the exam? The progress will not be saved."
+      )
+    ) {
+      router.push("/");
+    }
+  }, [router]);
+
   return (
     <div className="h-full flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-neutral-400">Subject: {subjectId}</p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExitExam}
+            className="p-2 rounded transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+            title="Exit exam"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+          </button>
+          <p className="text-sm text-neutral-400">Subject: {subjectId}</p>
+        </div>
         <div className="flex items-center gap-2">
           {startTime && (
             <div className="flex items-center gap-2">
@@ -243,6 +321,30 @@ export function EditorPane({
               </button>
             </div>
           )}
+          {solutionEnabled && (
+            <button
+              type="button"
+              onClick={handleShowSolution}
+              disabled={loadingSolution}
+              className="p-2 rounded transition-colors bg-blue-900/90 hover:bg-blue-800 text-blue-100 disabled:opacity-50"
+              title="View solution"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                />
+              </svg>
+            </button>
+          )}
           <button
             type="button"
             onClick={onSubmit}
@@ -282,6 +384,12 @@ export function EditorPane({
           {output || "Grader output will appear here."}
         </div>
       </div>
+      <SolutionModal
+        isOpen={showSolution}
+        onClose={() => setShowSolution(false)}
+        solution={solutionData?.content}
+        filename={solutionData?.filename}
+      />
     </div>
   );
 }
