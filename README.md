@@ -65,8 +65,14 @@ This project uses the grademe exam grading system. The original grademe software
 
 ## Dependencies
 
-- **grademe**: Core exam grading system
+
 - **Next.js**: React framework
 - **React**: UI library
 - **Monaco Editor**: Code editor
 - **Tailwind CSS**: Styling framework
+- **grademe**: Core exam grading system
+
+
+
+<img width="1717" height="946" alt="Screenshot 2025-10-20 at 00 00 05" src="https://github.com/user-attachments/assets/9d37fa1f-a08e-432e-8747-a97e34b9bc4f" />
+<img width="1716" height="950" alt="Screenshot 2025-10-20 at 00 00 16" src="https://github.com/user-attachments/assets/f2603968-1d52-46ec-9272-1c00a0e8824a" />
